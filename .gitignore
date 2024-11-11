@@ -1,0 +1,48 @@
+# .gitignore file specifies intentionally untracked files that Git should ignore
+# https://github.com/github/gitignore?tab=readme-ov-file#a-collection-of-gitignore-templates
+
+# Executables
+main
+tests
+*.exe
+*.out
+
+# GTest
+test_detail.json
+test_detail.xml
+
+# IDE
+.idea
+.vscode
+
+# macOS
+.DS_Store
+
+# Editor backup files
+*~
+
+# Vim
+*.swp
+*.swo
+
+# Object files
+*.o
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.a
+
+# Debug files
+*.dSYM/
+
+# Autograder testing
+submission/
+results/
+ag_lib/
+compile_commands.json
+.ccls*
+
+# Valgrind
+vgcore*
