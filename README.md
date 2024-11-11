@@ -5,38 +5,6 @@ Caches are implemented in computing systems because they mitigate the lengthy ti
 
 To simplify the lab, some parameters are much smaller than they would be in practice. In particular, this simulator uses a cache with 8 cache lines, and the physical memory has 256 addresses (i.e., each address is 8 bits), each of which stores a byte.
 
-For more specifics, see the hardcoded values in [constants.h](constants.h).
-
-While you write code, keeping these concrete values in mind may help with understanding. However, you should not use these hardcoded literals in your code because some test cases use different values from the hardcoded ones. So, you must use the symbolic variable names, such as `num_addr_bits` and `num_block_offset_bits`, and do not hardcode int literal values.
-
-<details open>
-<summary>Contents</summary>
-
-- [Background reading](#background-reading)
-  - [Repo structure](#repo-structure)
-- [Input/output](#inputoutput)
-  - [Running the main executable](#running-the-main-executable)
-  - [Explanation of input/output](#explanation-of-inputoutput)
-- [Understand given code](#understand-given-code)
-- [Coding tips](#coding-tips)
-  - [copy\_phy\_memory\_block\_to\_cache\_line](#copy_phy_memory_block_to_cache_line)
-  - [cache\_read](#cache_read)
-    - [DM](#dm)
-    - [FA](#fa)
-- [Submit your assignment](#submit-your-assignment)
-
-</details>
-
-## Background reading
-
-This lab is aligned very closely with the lecture content on caches and cache mapping algorithms. You must fully understand the relevant lecture content before proceeding with the lab.
-
-1. (Required) [System concepts, Main Memory and Memory Hierarchy](https://uncch.instructure.com/users/9947/files/5587554?verifier=5pVYCbHJeS551teiKVw1IJezkRZ2uGCeTdpQ1bdu&wrap=1) pgs. 19-23
-2. (Required) [Cache Memory, Mapping Algorithms, and the Principle of Locality](https://uncch.instructure.com/users/9947/files/5661387?verifier=FLrrKMVo00veF13U7m7Newwf4c52dBHJB4FWz7iq&wrap=1) pgs. 1-28
-    - Highly invaluable for implementing the DM and FA cache mapping algorithms.
-    - Contains concrete and easily understandable examples of DM and FA.
-    - If you don't understand this content, this repo's code and structure may not make sense to you.
-
 ### Repo structure
 
 ```text
@@ -210,58 +178,6 @@ Replacement, an in-use cache line was evicted
 
 Enter 8-bit memory address in hex format or "exit" to exit: 0xexit
 ```
-
-Notice that the tables are essentially identical to the tables in the cache mapping algorithm slides. The only small difference is that we rename the "valid" column name to "present". Also, the column "b" represents "Block offset" like the lecture slides but has to be abbreviated to maintain consistent column widths. If you haven't looked at these [lecture slides](#background-reading) yet, they're very relevant, so you should do so now!
-
-If you understand the slides, you'll understand what's going on in the example above. Four cache reads are performed, and after each read, the state of the cache is printed along with information about the read operation. The simulator prints whether there is a cache hit or miss. If there was a miss, then data from memory is copied into the cache. In that case, the simulator also prints whether the data was copied into an open cache line or an existing line was evicted and replaced with new data.
-
-Hopefully, this high-level description of input/output helps you understand your coding task.
-
-Similar to the previous lab, your `main` executable won't generate correct output until you're done with the final function, `cache_read`. But, `tests.cpp` unit tests each helper function so that you'll get immediate feedback as you code.
-
-## Understand given code
-
-If you haven't already, skim through the files marked "important" in [Repo structure](#repo-structure).
-
-[types.h](types.h) is particularly important to understand. Similar to the previous lab, if you understand the types and the [example above](#explanation-of-inputoutput), the code you'll have to write should become much more clear.
-
-You will implement the functions in the order that they are tested in [tests.cpp](tests.cpp), so it may be useful to skim functions in that order. However, note that it will be useful to understand some non-tested and already complete functions, such as [memory.c#determine_block_locations](memory.c).
-
-Finally, note that some functions have a lot of parameters. For example, the `cache_read` function signature is
-
-```c
-cache_read_rv cache_read(cache* cache, unsigned int addr,
-                         cache_mapping_algo cma,
-                         simulation_parameters sim_params,
-                         unsigned int* block_locations,
-                         unsigned int* phy_memory)
-```
-
-This may seem like a lot to keep track of. However, all parameters are necessary, so the only alternative is to use global variables. However, global variables are bad practice because for a given function, you wouldn't be able to easily figure out which global variables to use or not use, so there would actually be more mental overhead. In general, for all functions in this lab, all necessary information to implement the function correctly is passed as parameters. So, within any function, you need only keep track of the parameters and no other information (i.e., no global variables that would possibly be in different files). Lastly, for `cache_read` in particular, several of the parameters are simply trivially passed to other helper functions, so you don't need to keep all parameters in mind at the same time.
-
-## Coding tips
-
-`cache_read` is the most difficult function because you'll have to implement the DM and FA cache mapping algorithms (detailed examples of the algorithms are given in [lecture slides](#background-reading) and also explained [below](#cache_read)). All other functions are helper functions for `cache_read` that should be relatively straightforward.
-
-**Implement the functions in the order they are tested in [tests.cpp](tests.cpp)**.
-
-Please read the header file docstrings, implementation file comments, test cases, and [data files](data/) carefully. All provide necessary information for implementation.
-
-Here is some additional information that may be helpful.
-
-### copy_phy_memory_block_to_cache_line
-
-The functionality of `copy_phy_memory_block_to_cache_line` is identical to the sections highlighted yellow ("Put copy of block... in cache") in the lecture slides that show DM or FA examples. This function works the same way in both DM and FA.
-
-![copy_phy_memory_block_to_cache_line](https://i.imgur.com/Q2s1xVQ.png)
-
-### cache_read
-
-As mentioned above, this function is the most difficult one. However, you've already implemented a lot of the necessary functionality in the previous helper functions and now need only implement the core of the DM and FA algorithms and call the helper functions when necessary.
-
-Hopefully, you already have a decent understanding of the DM and FA algorithms from the detailed examples in the [lecture slides](#background-reading). But, we'll also describe the two algorithms at a high level here. We intentionally omit some details so that you can figure them out. For example, maybe we'll say whether a certain situation is a cache hit or miss, but you need to decide what to do on a hit or miss. All necessary details are in the lecture slides and the `cache_read` docstring.
-
-Note that this function is tested simply by running the `main` function on the input [data](data) files and comparing its output to the expected output files. See the docstring in [tests.cpp](tests.cpp)'s `CacheReadDM` test case for more details. So, to debug your code, you can compile and run your main executable on a given input and compare the output to the expected output.
 
 #### DM
 
